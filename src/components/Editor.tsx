@@ -9,7 +9,6 @@ import {
   Layout,
   LayoutProps,
   LezerHighlighter,
-  lines,
   PossibleCanvasStyle,
   Rect,
   signal,
@@ -25,7 +24,8 @@ import {
   unwrap,
   Vector2,
 } from '@motion-canvas/core';
-import {colors} from '../colorscheme';
+import {colors} from '../consts';
+import {allLines, rasterizeLength} from '../utils';
 import {Scrollable, ScrollableProps} from './Scrollable';
 import {TabHeader} from './TabHeader';
 
@@ -143,26 +143,8 @@ export class Editor extends Layout {
 
   private scrollLinePosition(line: number): Vector2 {
     const lineHeight = this.code().lineHeight();
-
-    let actualLineHeight = 0;
-    if (typeof lineHeight == 'string') {
-      const rawLineHeightPrecentage = lineHeight.substring(
-        0,
-        lineHeight.length - 1,
-      );
-      const lineHeightPrecentage = parseFloat(rawLineHeightPrecentage) / 100;
-      actualLineHeight = lineHeightPrecentage * this.code().height();
-    } else if (typeof lineHeight == 'number') {
-      actualLineHeight = lineHeight;
-    } else {
-      throw Error('Invalid lineHeight type');
-    }
-
+    const actualLineHeight = rasterizeLength(lineHeight, this.code().height());
     const scrollOffset = line * actualLineHeight;
     return new Vector2(0, scrollOffset);
   }
-}
-
-function allLines() {
-  return lines(0, Infinity);
 }
