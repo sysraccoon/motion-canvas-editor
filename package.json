@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "",
   "license": "MIT",
+  "author": "sysraccoon <sysraccoon@gmail.com>",
+  "homepage": "https://github.com/sysraccoon/motion-canvas-editor",
   "scripts": {
     "prepare": "husky",
     "build:dev": "rollup -c rollup.config.mjs",
@@ -24,8 +26,6 @@
   "keywords": [
     "motion-canvas"
   ],
-  "author": "",
-  "homepage": "",
   "peerDependencies": {
     "@motion-canvas/2d": "^3.17.2",
     "@motion-canvas/core": "^3.17.2"
