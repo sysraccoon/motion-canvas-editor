@@ -10,7 +10,7 @@ import {
   Rect,
 } from '@motion-canvas/2d';
 import {SignalValue} from '@motion-canvas/core';
-import {colors} from '../colorscheme';
+import {colors} from '../consts';
 
 export interface TabHeaderProps extends LayoutProps {
   fill?: SignalValue<PossibleCanvasStyle>;
