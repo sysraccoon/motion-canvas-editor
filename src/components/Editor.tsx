@@ -2,13 +2,13 @@ import {
   CanvasStyleSignal,
   canvasStyleSignal,
   Code,
+  CodeHighlighter,
   CodeProps,
   CodeRange,
   CodeSignal,
   initial,
   Layout,
   LayoutProps,
-  LezerHighlighter,
   PossibleCanvasStyle,
   Rect,
   resolveScope,
@@ -41,7 +41,7 @@ export interface EditorProps extends LayoutProps {
 export interface EditSnapshot {
   name: SignalValue<string>;
   code: CodeSignal<void>;
-  highlighter: LezerHighlighter;
+  highlighter: CodeHighlighter | null;
   selection: CodeRange[] | typeof DEFAULT;
   scroll: SignalValue<number>;
 }
