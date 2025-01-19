@@ -15,7 +15,7 @@ export interface ScrollableProps extends RectProps {}
 
 export class Scrollable extends Rect {
   @signal()
-  declare public readonly viewport: SimpleSignal<Node, this>;
+  declare protected readonly viewport: SimpleSignal<Node, this>;
 
   public constructor(props: ScrollableProps) {
     super({

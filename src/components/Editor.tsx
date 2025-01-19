@@ -48,13 +48,13 @@ export interface EditSnapshot {
 
 export class Editor extends Layout {
   @signal()
-  declare public readonly title: SimpleSignal<Txt, this>;
+  declare protected readonly title: SimpleSignal<Txt, this>;
 
   @signal()
-  declare public readonly code: SimpleSignal<Code, this>;
+  declare protected readonly code: SimpleSignal<Code, this>;
 
   @signal()
-  declare public readonly viewport: SimpleSignal<Scrollable, this>;
+  declare protected readonly viewport: SimpleSignal<Scrollable, this>;
 
   @initial(colors.backgroundAlt)
   @canvasStyleSignal()
