@@ -19,7 +19,7 @@ export interface TabHeaderProps extends LayoutProps {
 export class TabHeader extends Layout {
   @initial(colors.backgroundAlt)
   @canvasStyleSignal()
-  public declare readonly fill: CanvasStyleSignal<this>;
+  declare public readonly fill: CanvasStyleSignal<this>;
 
   public constructor(props: TabHeaderProps) {
     super({

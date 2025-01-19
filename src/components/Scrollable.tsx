@@ -1,10 +1,9 @@
-import {Layout, Rect, RectProps, signal} from '@motion-canvas/2d';
+import {Node, Rect, RectProps, signal} from '@motion-canvas/2d';
 import {
-  PossibleSpacing,
+  DEFAULT,
   PossibleVector2,
   SignalValue,
   SimpleSignal,
-  Spacing,
   ThreadGenerator,
   TimingFunction,
   unwrap,
@@ -16,7 +15,7 @@ export interface ScrollableProps extends RectProps {}
 
 export class Scrollable extends Rect {
   @signal()
-  public declare readonly viewport: SimpleSignal<Layout, this>;
+  declare public readonly viewport: SimpleSignal<Node, this>;
 
   public constructor(props: ScrollableProps) {
     super({
@@ -24,87 +23,66 @@ export class Scrollable extends Rect {
       clip: true,
     });
 
-    this.add(<Layout ref={this.viewport}>{props.children}</Layout>);
+    this.add(<Node ref={this.viewport}>{props.children}</Node>);
   }
 
   public *resetScroll() {
-    this.viewport().margin(new Spacing());
+    this.viewport().position(DEFAULT);
   }
 
   public *tweenResetScroll(
     duration: number,
     timingFunc: TimingFunction = defaultTimingFunc,
   ) {
-    yield* this.viewport().margin(new Spacing(), duration, timingFunc);
+    yield* this.viewport().position(DEFAULT, duration, timingFunc);
   }
 
-  public scroll(direction: PossibleVector2) {
-    const margin = this.marginByDirection(direction);
-    this.viewport().margin(margin);
+  public scroll(direction: SignalValue<PossibleVector2>) {
+    const newPosition = this.viewport().position().add(unwrap(direction));
+    this.viewport().position(newPosition);
   }
 
-  public scrollTo(position: PossibleVector2) {
-    const margin = this.absoluteMargin(position);
-    this.viewport().margin(margin);
+  public scrollTo(position: SignalValue<PossibleVector2>) {
+    const newPosition = () => new Vector2(unwrap(position)).mul(-1);
+    this.viewport().position(newPosition);
   }
 
   public *tweenScroll(
-    direction: PossibleVector2,
+    direction: SignalValue<PossibleVector2>,
     duration: number,
     timingFunc: TimingFunction = defaultTimingFunc,
   ): ThreadGenerator {
-    const margin = this.marginByDirection(direction);
-    yield* this.viewport().margin(margin, duration, timingFunc);
+    const newPosition = this.viewport()
+      .position()
+      .add(unwrap(direction))
+      .mul(-1);
+    yield* this.viewport().position(newPosition, duration, timingFunc);
   }
 
   public *tweenScrollTo(
-    position: PossibleVector2,
+    position: SignalValue<PossibleVector2>,
     duration: number,
     timingFunc: TimingFunction = defaultTimingFunc,
   ): ThreadGenerator {
-    const margin = this.absoluteMargin(position);
-    yield* this.viewport().margin(margin, duration, timingFunc);
+    const newPosition = () => new Vector2(unwrap(position)).mul(-1);
+    yield* this.viewport().position(newPosition, duration, timingFunc);
   }
 
   public *tweenScrollX(
-    value: SignalValue<number>,
+    delta: SignalValue<number>,
     duration: number,
     timingFunc: TimingFunction = defaultTimingFunc,
   ): ThreadGenerator {
-    const margin = this.marginByDirection([unwrap(value), 0]);
-    yield* this.viewport().margin(margin, duration, timingFunc);
+    const newPosition = this.position().addX(unwrap(delta)).mul(-1);
+    yield* this.viewport().position(newPosition, duration, timingFunc);
   }
 
   public *tweenScrollY(
-    value: SignalValue<number>,
+    delta: SignalValue<number>,
     duration: number,
     timingFunc: TimingFunction = defaultTimingFunc,
   ): ThreadGenerator {
-    const margin = this.marginByDirection([0, unwrap(value)]);
-    yield* this.viewport().margin(margin, duration, timingFunc);
-  }
-
-  private absoluteMargin(position: PossibleVector2): PossibleSpacing {
-    const pos = new Vector2(position);
-    const margin = this.viewport().margin();
-
-    margin.top = -pos.y;
-    margin.bottom = pos.y;
-    margin.right = -pos.x;
-    margin.left = pos.x;
-
-    return margin;
-  }
-
-  private marginByDirection(direction: PossibleVector2): PossibleSpacing {
-    const dir = new Vector2(direction);
-    const margin = this.viewport().margin();
-
-    margin.top -= dir.y;
-    margin.bottom += dir.y;
-    margin.right -= dir.x;
-    margin.left += dir.x;
-
-    return margin;
+    const newPosition = this.position().addY(unwrap(delta)).mul(-1);
+    yield* this.viewport().position(newPosition, duration, timingFunc);
   }
 }

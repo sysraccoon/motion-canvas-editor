@@ -11,6 +11,7 @@ import {
   LezerHighlighter,
   PossibleCanvasStyle,
   Rect,
+  resolveScope,
   signal,
   Txt,
 } from '@motion-canvas/2d';
@@ -32,7 +33,6 @@ import {TabHeader} from './TabHeader';
 export interface EditorProps extends LayoutProps {
   viewportProps?: ScrollableProps;
   codeProps?: CodeProps;
-
   editSnapshot?: EditSnapshot;
 
   fill?: SignalValue<PossibleCanvasStyle>;
@@ -48,17 +48,17 @@ export interface EditSnapshot {
 
 export class Editor extends Layout {
   @signal()
-  public declare readonly title: SimpleSignal<Txt, this>;
+  declare public readonly title: SimpleSignal<Txt, this>;
 
   @signal()
-  public declare readonly code: SimpleSignal<Code, this>;
+  declare public readonly code: SimpleSignal<Code, this>;
 
   @signal()
-  public declare readonly viewport: SimpleSignal<Scrollable, this>;
+  declare public readonly viewport: SimpleSignal<Scrollable, this>;
 
   @initial(colors.backgroundAlt)
   @canvasStyleSignal()
-  public declare readonly fill: CanvasStyleSignal<this>;
+  declare public readonly fill: CanvasStyleSignal<this>;
 
   public constructor(props: EditorProps) {
     super({
@@ -92,21 +92,21 @@ export class Editor extends Layout {
   }
 
   public scrollToLine(line: number) {
-    const scrollLinePosition = this.scrollLinePosition(line);
-    this.viewport().scrollTo(scrollLinePosition);
+    const linePosition = () => this.linePosition(line);
+    this.viewport().scrollTo(linePosition);
   }
 
   public *tweenScrollToLine(line: number, duration: number) {
-    const scrollLinePosition = this.scrollLinePosition(line);
-    yield* this.viewport().tweenScrollTo(scrollLinePosition, duration);
+    const linePosition = () => this.linePosition(line);
+    yield* this.viewport().tweenScrollTo(linePosition, duration);
   }
 
   public editSnapshot(snapshot: EditSnapshot) {
     this.title().text(snapshot.name);
-    this.scrollToLine(unwrap(snapshot.scroll));
-    this.code().selection(snapshot.selection);
     this.code().code(snapshot.code);
+    this.code().selection(snapshot.selection);
     this.code().highlighter(snapshot.highlighter);
+    this.scrollToLine(unwrap(snapshot.scroll));
   }
 
   public *tweenEditSnapshot(snapshot: EditSnapshot, duration: number) {
@@ -122,7 +122,19 @@ export class Editor extends Layout {
       this.title().text() == snapshot.name &&
       code.highlighter() == snapshot.highlighter
     ) {
-      tasks.push(code.code(snapshot.code, duration));
+      const newCode = resolveScope(
+        snapshot.code(),
+        scope => unwrap(scope.progress) > 0.5,
+      );
+      const oldCode = code.parsed();
+
+      // default highlighter sometimes flickering without any actual changes in code
+      if (newCode != oldCode) {
+        tasks.push(code.code(snapshot.code, duration));
+      } else {
+        code.code(snapshot.code);
+      }
+
       tasks.push(this.tweenScrollToLine(unwrap(snapshot.scroll), duration));
     } else {
       tasks.push(
@@ -135,16 +147,17 @@ export class Editor extends Layout {
           code.opacity(1, duration * 0.5),
         ),
       );
+
       tasks.push(code.code.replace(allLines(), snapshot.code, duration));
     }
 
     yield* all(...tasks);
   }
 
-  private scrollLinePosition(line: number): Vector2 {
+  private linePosition(line: number): Vector2 {
     const lineHeight = this.code().lineHeight();
-    const actualLineHeight = rasterizeLength(lineHeight, this.code().height());
-    const scrollOffset = line * actualLineHeight;
-    return new Vector2(0, scrollOffset);
+    const codeHeight = this.code().height();
+    const actualLineHeight = rasterizeLength(lineHeight, codeHeight);
+    return new Vector2(0, line * actualLineHeight);
   }
 }
