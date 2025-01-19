@@ -19,7 +19,7 @@
     "paths": {
       "@components/*": ["./src/*"]
     },
-    "outDir": "lib/tsc/"
+    "outDir": "lib/"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
 }
