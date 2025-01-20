@@ -1,54 +1,99 @@
-# My First Motion Canvas Component Library
+# Motion Canvas Editor
 
-## Using this library
+[Motion Canvas](https://motioncanvas.io/) library that makes it easier to create complex code animations interactively.
 
-### From git
+> [!WARNING]  
+> This project is experimental and provided as is without warranty of any kind. It may be significantly changed at any time.
 
-1. Clone this repo.
-1. Run `npm install <path to this repo>` in your motion canvas project
+## Installation
 
-### From npm
+Run `npm install --save @sysraccoon/motion-canvas-editor`
 
-1. Run `npm install <library name here>`
+## Usage
 
-## Why use this repo?
+### Standalone
 
-This repo gives you a couple benefits over starting from scratch:
+> [!NOTE]
+> More complete solution can be found here: [motion-canvas-editor-demo](https://github.com/sysraccoon/motion-canvas-editor-demo)
 
-- The same linting options as main motion-canvas code, which helps to keep the
-  community on the same page.
-- A build pipeline in place with:
-  - automatic watch support, allowing you to develop quickly
-  - automatic compilation and splitting for your TypeScript, allowing it to be
-    used in a variety of environments.
-
-## Getting Started
-
-1. Clone this repo.
-1. Run
-   `git remote add upstream https://github.com/hhenrichsen/motion-canvas-component-library-template`
-   to gain the ability to update when this repo gets enhancements (via
-   `git pull upstream main`)
-1. Update the package name in `package.json` and run `npm install`. I recommend
-   something like `@username/library-name`.
-1. Update the UMD name of this package in `rollup.config.mjs`
-1. Update the title of this README.
-1. Run `npm run watch` -- this will create some files in the `lib` folder for
-   you, and rebuild them here when you make changes.
-1. Start developing a component in the `src` folder, and make sure that it's
-   exported from the `index.ts` file.
-1. Run `npm install <path to this repo>` in a motion canvas project -- this will
-   add a link to this repo in your project.
-1. Import components from this library and verify that they work:
-
+This library provide `Editor` component. It can be created like this:
 ```tsx
-import {SwitchComponent} from '@username/library-name';
+// imports ...
+import { Editor } from '@sysraccoon/motion-canvas-editor';
+
+export default makeScene2D(function*(view) {
+  const editor = createRef<Editor>();
+  view.add(
+    <Editor
+      ref={editor}
+      viewportProps={{
+        maxWidth: 1440,
+        maxHeight: 870,
+      }}
+      fontFamily={'Source Code Pro'}
+      fontSize={30}
+    />
+  );
+});
 ```
 
-## Publishing to NPM
+Now you can create `EditSnapshot` object that represent editor state:
+```tsx
+const pyHighlighter = new LezerHighlighter(pyParser);
+const snapshot: EditSnapshot = {
+  name: "main.py",
+  code: Code.createSignal('print("hello world")'),
+  highlighter: pyHighlighter,
+  selection: DEFAULT,
+  scroll: 0,
+};
+```
 
-1. Run `npm run build` one last time.
-1. Verify that the package works when installed with
-   `npm install <path to this repo>`.
-1. Run `npm publish --access public`. You may have to authenticate if this is
-   your first time publishing a package.
+And pass it as initial parameter:
+```tsx
+<Editor
+  ref={editor}
+  editSnapshot={snapshot}
+  // ...
+/>
+```
+
+Or animate state change by using `tweenEditSnapshot` generator:
+```tsx
+yield* editor().tweenEditSnapshot(snapshot, 0.5);
+```
+
+### With NeoVim Plugin
+
+This library provide built-in integration with [motion-canvas-editor.nvim](https://github.com/sysraccoon/motion-canvas-editor.nvim).
+
+https://github.com/user-attachments/assets/f9d38663-1c7c-4547-a0cb-d237fc9da8f7
+
+- Create editor object like present in **standalone** section.
+- Create symbolic link to session file (or just copy it to project):
+
+```sh
+ln -s ~/projects/demo-project/mce-session.json ~/projects/my-animation/mce-session.json
+# or
+cp ~/projects/demo-project/mce-session.json ~/projects/my-animation/mce-session.json
+```
+
+- Import session file in your scene:
+```tsx
+import editorSession from '../../mce-session.json';
+```
+
+- Import `NeoVimSession` interface and `parseNeoVimSession` function:
+```tsx
+import { Editor, NeoVimSession, parseNeoVimSession } from '@sysraccoon/motion-canvas-editor';
+```
+
+- Parse snapshots:
+```tsx
+const snapshots = parseNeoVimSession(
+  editorSession as NeoVimSession,
+  (_name, _content) => Code.defaultHighlighter, // provide here your highlighter
+);
+```
+
+- Use snapshots like present in **standalone** section.
