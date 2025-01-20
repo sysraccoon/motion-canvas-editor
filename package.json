@@ -6,7 +6,8 @@
   "author": "sysraccoon <sysraccoon@gmail.com>",
   "homepage": "https://github.com/sysraccoon/motion-canvas-editor",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "npm run husky && npm run build",
+    "husky": "husky",
     "build:dev": "rollup -c rollup.config.mjs",
     "watch": "rollup -c rollup.config.mjs -w",
     "build": "rollup -c rollup.config.mjs",
